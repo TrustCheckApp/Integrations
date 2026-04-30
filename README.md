@@ -4,7 +4,7 @@ Camada de integracoes externas da plataforma TrustCheck para autenticacao, comun
 
 ## Estado real atual
 - TC3-INT-03 concluida: adapter OTP SMS com retentativa, fallback e metricas.
-- TC3-INT-04 e TC3-INT-05 em andamento neste ciclo.
+- TC3-INT-04 concluida: email transacional com templates e fallback de provedor.`n- TC3-INT-05 em andamento neste ciclo.
 
 ## Escopo V1
 - OTP e notificacao por SMS (Twilio ou Zenvia).
