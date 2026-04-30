@@ -1,6 +1,10 @@
-﻿# TrustCheck Integrations
+# TrustCheck Integrations
 
 Camada de integracoes externas da plataforma TrustCheck para autenticacao, comunicacao, moderacao assistida e analytics.
+
+## Estado real atual
+- TC3-INT-03 concluida: adapter OTP SMS com retentativa, fallback e metricas.
+- TC3-INT-04 e TC3-INT-05 em andamento neste ciclo.
 
 ## Escopo V1
 - OTP e notificacao por SMS (Twilio ou Zenvia).
@@ -9,6 +13,13 @@ Camada de integracoes externas da plataforma TrustCheck para autenticacao, comun
 - Armazenamento de midia (S3/CloudFront).
 - IA de apoio para moderacao (OpenAI/Rekognition, conforme regra).
 - Analytics de funil e comportamento (Mixpanel).
+
+## Estrutura
+- `src/otp`: adapters e fluxo de entrega OTP.
+- `src/email`: servicos e templates transacionais.
+- `src/media`: assinatura de upload/download e politicas de objeto.
+- `src/shared`: componentes de suporte (metricas/log).
+- `docs/`: documentacao operacional por tarefa.
 
 ## Responsabilidades
 - Encapsular provedores externos com contrato claro para o `Api`.
