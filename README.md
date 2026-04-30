@@ -40,3 +40,7 @@ Camada de integracoes externas da plataforma TrustCheck para autenticacao, comun
 - https://github.com/TrustCheckApp/Docs
 - `Docs/docs/01-visao-produto-e-modulos.md`
 - `Docs/docs/03-planejamento-sprints.md`
+
+## Estado real complementar
+- TC2-MOB-06: contrato de upload assinado publicado para consumo do app mobile.
+
