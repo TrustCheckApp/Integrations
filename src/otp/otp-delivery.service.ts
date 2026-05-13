@@ -1,5 +1,6 @@
 import type { MetricsCollector } from '../shared/metrics.js';
 import { OtpError, normalizeOtpError } from './errors.js';
+import { recordOtpMetric } from './otp-metrics.js';
 import type { OtpProvider, OtpProviderSelection, OtpSendRequest, OtpSendResult } from './otp-provider.js';
 import { retryDelayMs, resolveOtpRetryPolicy, type OtpRetryPolicy } from './retry-policy.js';
 
@@ -34,8 +35,14 @@ export class OtpDeliveryService {
 
       try {
         const result = await provider.sendOtp(request);
-        this.record('otp_delivery_success_total', 1, provider.name, request, attempt);
-        this.record('otp_delivery_latency_ms', result.latencyMs || Math.round(performance.now() - startedAt), provider.name, request);
+        recordOtpMetric(this.options.metrics, 'otp_delivery_success_total', 1, provider.name, request, attempt);
+        recordOtpMetric(
+          this.options.metrics,
+          'otp_delivery_latency_ms',
+          result.latencyMs || Math.round(performance.now() - startedAt),
+          provider.name,
+          request,
+        );
         return result;
       } catch (error) {
         lastError = normalizeOtpError(error, {
@@ -46,10 +53,10 @@ export class OtpDeliveryService {
           correlationId: request.correlationId,
         });
 
-        this.record('otp_delivery_failure_total', 1, provider.name, request, attempt);
+        recordOtpMetric(this.options.metrics, 'otp_delivery_failure_total', 1, provider.name, request, attempt);
 
         if (attempt < this.retryPolicy.maxAttempts) {
-          this.record('otp_delivery_retry_total', 1, provider.name, request, attempt);
+          recordOtpMetric(this.options.metrics, 'otp_delivery_retry_total', 1, provider.name, request, attempt);
           await this.sleep(retryDelayMs(this.retryPolicy, attempt));
         }
       }
@@ -94,14 +101,6 @@ export class OtpDeliveryService {
     }
   }
 
-  private record(metric: string, value: number, provider: string, request: OtpSendRequest, attempt?: number): void {
-    this.options.metrics.record(metric, value, {
-      provider,
-      channel: request.channel,
-      purpose: request.purpose,
-      ...(attempt ? { attempt: String(attempt) } : {}),
-    });
-  }
 }
 
 function isOtpProvider(provider: OtpProvider | undefined): provider is OtpProvider {
