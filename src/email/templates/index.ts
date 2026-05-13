@@ -1,14 +1,38 @@
-export const templates = {
-  welcome: (name: string) => ({
-    subject: 'Bem-vindo ao TrustCheck',
-    html: `<h1>Bem-vindo, ${name}</h1><p>Sua conta foi criada com sucesso.</p>`,
-  }),
-  auth_confirmation: (code: string) => ({
-    subject: 'Confirmacao de autenticacao',
-    html: `<p>Seu codigo de confirmacao: <strong>${code}</strong></p>`,
-  }),
-  case_status_update: (caseId: string, status: string) => ({
-    subject: `Atualizacao do caso ${caseId}`,
-    html: `<p>O status do caso foi atualizado para <strong>${status}</strong>.</p>`,
-  }),
+import { otpTemplate } from './auth.js';
+import {
+  businessResponseTemplate,
+  casePublishedTemplate,
+  claimApprovedTemplate,
+  claimReceivedTemplate,
+  claimRejectedTemplate,
+} from './cases.js';
+import type {
+  EmailTemplateDefinition,
+  EmailTemplateId,
+  EmailTemplatePayloadMap,
+  RenderedEmailTemplate,
+} from './types.js';
+
+export type * from './types.js';
+
+export const emailTemplates: {
+  [TTemplateId in EmailTemplateId]: EmailTemplateDefinition<EmailTemplatePayloadMap[TTemplateId]>;
+} = {
+  otp: otpTemplate,
+  claim_received: claimReceivedTemplate,
+  claim_approved: claimApprovedTemplate,
+  claim_rejected: claimRejectedTemplate,
+  case_published: casePublishedTemplate,
+  business_response: businessResponseTemplate,
 };
+
+export function renderEmailTemplate<TTemplateId extends EmailTemplateId>(
+  templateId: TTemplateId,
+  payload: EmailTemplatePayloadMap[TTemplateId],
+): RenderedEmailTemplate {
+  const template = emailTemplates[templateId] as EmailTemplateDefinition<
+    EmailTemplatePayloadMap[TTemplateId]
+  >;
+
+  return template.render(payload);
+}

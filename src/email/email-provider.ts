@@ -1,8 +1,11 @@
-export type EmailTemplateId = 'welcome' | 'auth_confirmation' | 'case_status_update';
+import type { EmailTemplateId } from './templates/types.js';
+
+export type { EmailTemplateId } from './templates/types.js';
 
 export interface EmailPayload {
   to: string;
   subject: string;
+  text: string;
   html: string;
   correlationId: string;
 }

@@ -1,6 +1,7 @@
 import type { MetricsCollector } from '../shared/metrics.js';
 import type { EmailProvider, EmailTemplateId } from './email-provider.js';
-import { templates } from './templates/index.js';
+import type { EmailTemplatePayloadMap } from './templates/index.js';
+import { renderEmailTemplate } from './templates/index.js';
 
 interface TransactionalEmailServiceOptions {
   primary: EmailProvider;
@@ -11,11 +12,11 @@ interface TransactionalEmailServiceOptions {
 export class TransactionalEmailService {
   constructor(private readonly options: TransactionalEmailServiceOptions) {}
 
-  async sendTemplate(
-    templateId: EmailTemplateId,
+  async sendTemplate<TTemplateId extends EmailTemplateId>(
+    templateId: TTemplateId,
     to: string,
     correlationId: string,
-    data: Record<string, string>,
+    data: EmailTemplatePayloadMap[TTemplateId],
   ): Promise<{ provider: string; messageId: string }> {
     const payload = this.build(templateId, to, correlationId, data);
 
@@ -46,18 +47,9 @@ export class TransactionalEmailService {
     templateId: EmailTemplateId,
     to: string,
     correlationId: string,
-    data: Record<string, string>,
+    data: EmailTemplatePayloadMap[EmailTemplateId],
   ) {
-    if (templateId === 'welcome') {
-      const tpl = templates.welcome(data.name ?? 'Usuario');
-      return { to, correlationId, ...tpl };
-    }
-    if (templateId === 'auth_confirmation') {
-      const tpl = templates.auth_confirmation(data.code ?? '000000');
-      return { to, correlationId, ...tpl };
-    }
-
-    const tpl = templates.case_status_update(data.caseId ?? 'N/A', data.status ?? 'atualizado');
+    const tpl = renderEmailTemplate(templateId, data);
     return { to, correlationId, ...tpl };
   }
 }
