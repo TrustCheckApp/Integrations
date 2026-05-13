@@ -21,6 +21,12 @@ Camada de integracoes externas da plataforma TrustCheck para autenticacao, comun
 - `src/shared`: componentes de suporte (metricas/log).
 - `docs/`: documentacao operacional por tarefa.
 
+## Adaptador OTP seguro
+- Contrato e uso seguro: `docs/otp-adapter.md`
+- Providers: `src/otp/providers.ts`
+- Retry: `src/otp/retry-policy.ts`
+- Metricas seguras: `src/otp/otp-metrics.ts`
+
 ## Responsabilidades
 - Encapsular provedores externos com contrato claro para o `Api`.
 - Isolar configuracoes de credenciais e ambiente.
