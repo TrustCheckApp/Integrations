@@ -4,15 +4,17 @@ import { TwilioOtpProvider, ZenviaOtpProvider } from './otp/providers.js';
 
 const metrics = new MetricsCollector();
 const otpService = new OtpDeliveryService({
-  primary: new TwilioOtpProvider(),
-  secondary: new ZenviaOtpProvider(),
+  providers: [new TwilioOtpProvider(), new ZenviaOtpProvider()],
+  providerName: process.env.OTP_PROVIDER ?? 'twilio',
   metrics,
 });
 
 async function main(): Promise<void> {
   const result = await otpService.send({
     destination: '+5511999998888',
-    code: '123456',
+    otp: '123456',
+    channel: 'sms',
+    purpose: 'login',
     ttlSeconds: 300,
     correlationId: crypto.randomUUID(),
   });
