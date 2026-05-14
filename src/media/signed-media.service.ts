@@ -1,13 +1,15 @@
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { EVIDENCE_CONTENT_TYPES, EVIDENCE_MAX_SIZE_BYTES, type EvidenceType } from './evidence-policy.js';
+import type { SignedDownloadContractResponse, SignedUploadContractResponse } from '../contracts/signed-upload-contract.js';
+import { SIGNED_PREVIEW_TTL_SECONDS, SIGNED_UPLOAD_TTL_SECONDS, validateMediaPolicy, type EvidenceType } from './evidence-policy.js';
 
 interface SignedUploadRequest {
   caseId: string;
   evidenceType: EvidenceType;
   fileName: string;
-  contentType: string;
-  contentLength: number;
+  mimeType: string;
+  sizeBytes: number;
+  checksumSha256: string;
 }
 
 export class SignedMediaService {
@@ -20,35 +22,41 @@ export class SignedMediaService {
     this.s3 = new S3Client({ region });
   }
 
-  async createUploadUrl(input: SignedUploadRequest): Promise<{ key: string; uploadUrl: string; expiresIn: number }> {
-    this.validate(input.evidenceType, input.contentType, input.contentLength);
-    const key = `cases/${input.caseId}/${input.evidenceType}/${Date.now()}-${input.fileName}`;
+  async createUploadUrl(input: SignedUploadRequest): Promise<SignedUploadContractResponse> {
+    validateMediaPolicy(input);
+    const uploadId = crypto.randomUUID();
+    const storageKey = `cases/${input.caseId}/${input.evidenceType}/${uploadId}`;
     const command = new PutObjectCommand({
       Bucket: this.bucket,
-      Key: key,
-      ContentType: input.contentType,
+      Key: storageKey,
+      ContentType: input.mimeType,
+      ContentLength: input.sizeBytes,
+      ChecksumSHA256: input.checksumSha256,
       ServerSideEncryption: 'AES256',
     });
 
-    const expiresIn = 900;
-    const uploadUrl = await getSignedUrl(this.s3, command, { expiresIn });
-    return { key, uploadUrl, expiresIn };
+    const uploadUrl = await getSignedUrl(this.s3, command, { expiresIn: SIGNED_UPLOAD_TTL_SECONDS });
+    return {
+      uploadId,
+      uploadUrl,
+      expiresAt: new Date(Date.now() + SIGNED_UPLOAD_TTL_SECONDS * 1000).toISOString(),
+      ttlSeconds: SIGNED_UPLOAD_TTL_SECONDS,
+      status: 'pending_upload',
+      requiredHeaders: {
+        'Content-Type': input.mimeType,
+        'Content-Length': String(input.sizeBytes),
+        'x-amz-checksum-sha256': input.checksumSha256,
+      },
+    };
   }
 
-  async createDownloadUrl(key: string): Promise<{ downloadUrl: string; expiresIn: number }> {
-    const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
-    const expiresIn = 600;
-    const downloadUrl = await getSignedUrl(this.s3, command, { expiresIn });
-    return { downloadUrl, expiresIn };
-  }
-
-  private validate(type: EvidenceType, contentType: string, contentLength: number): void {
-    if (!EVIDENCE_CONTENT_TYPES[type].includes(contentType)) {
-      throw new Error(`EVIDENCE_INVALID_CONTENT_TYPE:${type}:${contentType}`);
-    }
-
-    if (contentLength > EVIDENCE_MAX_SIZE_BYTES[type]) {
-      throw new Error(`EVIDENCE_MAX_SIZE_EXCEEDED:${type}`);
-    }
+  async createPreviewUrl(storageKey: string): Promise<SignedDownloadContractResponse> {
+    const command = new GetObjectCommand({ Bucket: this.bucket, Key: storageKey });
+    const previewUrl = await getSignedUrl(this.s3, command, { expiresIn: SIGNED_PREVIEW_TTL_SECONDS });
+    return {
+      previewUrl,
+      expiresAt: new Date(Date.now() + SIGNED_PREVIEW_TTL_SECONDS * 1000).toISOString(),
+      ttlSeconds: SIGNED_PREVIEW_TTL_SECONDS,
+    };
   }
 }
