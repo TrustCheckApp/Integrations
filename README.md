@@ -1,25 +1,21 @@
-# TrustCheck Integrations
+﻿# TrustCheck Integrations
 
-Camada de integracoes externas da plataforma TrustCheck para autenticacao, comunicacao, moderacao assistida e analytics.
+Camada de integracoes externas da plataforma TrustCheck.
 
-## Estado real atual
-- TC3-INT-03 concluida: adapter OTP SMS com retentativa, fallback e metricas.
-- TC3-INT-04 concluida: email transacional com templates e fallback de provedor.`n- TC3-INT-05 concluida: upload assinado e acesso privado para midia.
+## Estado atual (atualizado em 2026-05-14)
+- Estruturas de OTP, email transacional e signed media implementadas.
+- Build TypeScript funcional.
+- Providers atuais em modo adaptador/stub (simulacao de envio).
 
-## Escopo V1
-- OTP e notificacao por SMS (Twilio ou Zenvia).
-- Emails transacionais (SendGrid).
-- Push notifications (FCM e APNs).
-- Armazenamento de midia (S3/CloudFront).
-- IA de apoio para moderacao (OpenAI/Rekognition, conforme regra).
-- Analytics de funil e comportamento (Mixpanel).
+## Situacao tecnica real
+- OTP: servico com tentativas, fallback e metricas.
+- Email: servico transacional com fallback entre provedores.
+- Midia: contrato de signed upload/download com politicas de tipo/tamanho.
 
-## Estrutura
-- `src/otp`: adapters e fluxo de entrega OTP.
-- `src/email`: servicos e templates transacionais.
-- `src/media`: assinatura de upload/download e politicas de objeto.
-- `src/shared`: componentes de suporte (metricas/log).
-- `docs/`: documentacao operacional por tarefa.
+## Gaps para producao
+1. Conectar providers a servicos reais (Twilio/Zenvia, SendGrid/Resend).
+2. Expandir testes automatizados alem de baseline atual.
+3. Formalizar estrategia de observabilidade e erros por provedor externo.
 
 ## Adaptador OTP seguro
 - Contrato e uso seguro: `docs/otp-adapter.md`
@@ -42,11 +38,13 @@ Camada de integracoes externas da plataforma TrustCheck para autenticacao, comun
 - Operado com suporte do `Infra`.
 - Requisitos funcionais definidos no `Docs`.
 
+## Scripts
+```bash
+npm install
+npm run build
+npm run test
+```
+
 ## Fonte de verdade funcional
 - https://github.com/TrustCheckApp/Docs
-- `Docs/docs/01-visao-produto-e-modulos.md`
-- `Docs/docs/03-planejamento-sprints.md`
-
-## Estado real complementar
-- TC2-MOB-06: contrato de upload assinado publicado para consumo do app mobile.
-
+- `Docs/docs/05-sprint-semanal-03-infra-integracoes-qa.md`
